@@ -1,6 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
-const { calculatePattern } = require('../alma-patterns-content');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -8,8 +7,41 @@ const supabase = createClient(
 );
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const SITE_URL = process.env.SITE_URL;
 
-const SITE_URL = process.env.SITE_URL; // e.g. https://alma.yourdomain.com
+function calculatePattern(answers) {
+  const scores = { A: 0, B: 0, C: 0 };
+  const QUESTIONS = [
+    { id: 1, options: [{ A: 4, B: 0, C: 0 }, { A: 3, B: 1, C: 0 }, { A: 1, B: 2, C: 1 }, { A: 2, B: 1, C: 1 }] },
+    { id: 2, options: [{ A: 0, B: 4, C: 0 }, { A: 1, B: 3, C: 0 }, { A: 1, B: 2, C: 1 }, { A: 0, B: 1, C: 2 }] },
+    { id: 3, options: [{ A: 4, B: 0, C: 0 }, { A: 2, B: 1, C: 1 }, { A: 3, B: 0, C: 1 }, { A: 2, B: 0, C: 2 }] },
+    { id: 4, options: [{ A: 1, B: 1, C: 0 }, { A: 0, B: 0, C: 1 }, { A: 0, B: 0, C: 3 }, { A: 0, B: 0, C: 4 }] },
+    { id: 5, options: [{ A: 0, B: 4, C: 0 }, { A: 0, B: 3, C: 1 }, { A: 1, B: 3, C: 0 }, { A: 1, B: 2, C: 2 }] },
+    { id: 6, options: [{ A: 4, B: 0, C: 0 }, { A: 3, B: 0, C: 1 }, { A: 2, B: 0, C: 2 }, { A: 0, B: 0, C: 3 }] },
+    { id: 7, options: [{ A: 0, B: 0, C: 2 }, { A: 0, B: 1, C: 3 }, { A: 1, B: 1, C: 2 }, { A: 0, B: 0, C: 4 }] },
+    { id: 8, options: [{ A: 0, B: 4, C: 0 }, { A: 0, B: 3, C: 1 }, { A: 1, B: 4, C: 0 }, { A: 0, B: 2, C: 1 }] },
+    { id: 9, options: [{ A: 0, B: 0, C: 2 }, { A: 2, B: 0, C: 2 }, { A: 1, B: 0, C: 3 }, { A: 1, B: 1, C: 4 }] }
+  ];
+
+  for (const answer of answers) {
+    const qId = answer.qIndex !== undefined ? answer.qIndex + 1 : answer.questionId;
+    const question = QUESTIONS.find(q => q.id === qId);
+    if (!question) continue;
+    const option = question.options[answer.optionIndex];
+    if (!option) continue;
+    scores.A += option.A || 0;
+    scores.B += option.B || 0;
+    scores.C += option.C || 0;
+  }
+
+  const total = scores.A + scores.B + scores.C;
+  if (total === 0) return 'survivor';
+  const aR = scores.A / total, bR = scores.B / total, cR = scores.C / total;
+  if (aR >= 0.45 && cR < 0.35) return 'fixer';
+  if (bR >= 0.45 && aR >= 0.15) return 'doubter';
+  if (cR >= 0.45 && aR < 0.25) return 'walker';
+  return 'survivor';
+}
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,13 +55,11 @@ module.exports = async function handler(req, res) {
     const { name, email, answers } = req.body;
 
     if (!name || !email || !answers || !Array.isArray(answers)) {
-      return res.status(400).json({ error: 'Missing required fields: name, email, answers' });
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // 1. Calculate pattern from answers
     const pattern = calculatePattern(answers);
 
-    // 2. Save to Supabase
     const { data, error: dbError } = await supabase
       .from('quiz_results')
       .insert({ name, email, answers, pattern })
@@ -41,76 +71,33 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to save result' });
     }
 
-    const resultId = data.id;
-    const resultUrl = `${SITE_URL}/results.html?id=${resultId}`;
+    const resultUrl = `${SITE_URL}/results.html?id=${data.id}`;
 
-    // 3. Send email via Resend
     const { error: emailError } = await resend.emails.send({
-      from: 'Sofia at Alma <sofia@yourdomain.com>',
+      from: 'Sofia at Alma <onboarding@resend.dev>',
       to: email,
       subject: `${name}, your Alma result is ready`,
       html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="margin:0;padding:0;background:#faf9f7;font-family:Georgia,serif;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#faf9f7;padding:40px 20px;">
-              <tr>
-                <td align="center">
-                  <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;">
-                    <tr>
-                      <td style="background:#1a1a1a;padding:32px 40px;text-align:center;">
-                        <p style="margin:0;color:#c9b99a;font-size:13px;letter-spacing:3px;text-transform:uppercase;">alma</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:48px 40px;">
-                        <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">Dear ${name},</p>
-                        <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6;">
-                          Thank you for taking the time to go through the quiz. Your result is ready.
-                        </p>
-                        <p style="margin:0 0 32px;font-size:15px;color:#555;line-height:1.6;">
-                          What you will find inside is not a generic summary. It is a detailed reflection of your specific pattern, written to help you feel understood, not categorized.
-                        </p>
-                        <table cellpadding="0" cellspacing="0" style="margin:0 auto 40px;">
-                          <tr>
-                            <td style="background:#1a1a1a;border-radius:6px;padding:16px 32px;text-align:center;">
-                              <a href="${resultUrl}" style="color:#ffffff;text-decoration:none;font-size:15px;font-family:Georgia,serif;letter-spacing:0.5px;">
-                                See your result
-                              </a>
-                            </td>
-                          </tr>
-                        </table>
-                        <p style="margin:0 0 8px;font-size:14px;color:#999;line-height:1.6;">
-                          If the button does not work, copy and paste this link:
-                        </p>
-                        <p style="margin:0 0 40px;font-size:13px;color:#bbb;word-break:break-all;">${resultUrl}</p>
-                        <p style="margin:0 0 4px;font-size:15px;color:#555;">With care,</p>
-                        <p style="margin:0;font-size:15px;color:#555;">Sofia</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="background:#f5f4f2;padding:24px 40px;text-align:center;">
-                        <p style="margin:0;font-size:12px;color:#aaa;">
-                          You received this email because you completed the Alma quiz.
-                        </p>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-          </body>
-        </html>
+        <div style="max-width:560px;margin:0 auto;font-family:Georgia,serif;background:#faf9f6;padding:40px 20px;">
+          <div style="background:#1a1714;padding:24px;text-align:center;margin-bottom:32px;">
+            <p style="margin:0;color:#c9b99a;font-size:13px;letter-spacing:3px;">ALMA</p>
+          </div>
+          <p style="font-size:16px;color:#3d3830;line-height:1.7;">Dear ${name},</p>
+          <p style="font-size:16px;color:#3d3830;line-height:1.7;margin:16px 0;">Your result is ready. What you will find is not a generic summary. It is a detailed reflection of your specific pattern.</p>
+          <div style="text-align:center;margin:40px 0;">
+            <a href="${resultUrl}" style="background:#1a1714;color:#ffffff;text-decoration:none;padding:16px 32px;font-size:16px;font-family:Georgia,serif;">
+              See your result
+            </a>
+          </div>
+          <p style="font-size:13px;color:#8a8275;word-break:break-all;">Or copy this link: ${resultUrl}</p>
+          <p style="font-size:16px;color:#3d3830;margin-top:32px;">With care,<br>Sofia</p>
+        </div>
       `,
     });
 
     if (emailError) {
       console.error('Resend error:', emailError);
-      return res.status(200).json({ success: true, warning: 'Result saved but email failed to send' });
+      return res.status(200).json({ success: true, warning: 'Saved but email failed' });
     }
 
     return res.status(200).json({ success: true });
