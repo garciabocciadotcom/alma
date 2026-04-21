@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Alma Result</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #faf9f6;
+      --warm-white: #f5f3ee;
+      --dark: #1a1714;
+      --mid: #3d3830;
+      --muted: #8a8275;
+      --accent: #c9a96e;
+      --accent-light: #e8d9bc;
+      --border: #e2ddd4;
+      --red-soft: #c4756a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--dark);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* ---- LOADING STATE ---- */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--cream);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      gap: 20px;
+    }
+    .loading-wordmark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .loading-bar {
+      width: 120px;
+      height: 1px;
+      background: var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .loading-bar::after {
+      content: '';
+      position: absolute;
+      left: -100%;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--accent);
+      animation: loadSlide 1.4s ease-in-out infinite;
+    }
+    @keyframes loadSlide {
+      to { left: 100%; }
+    }
+    .loading-text {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ---- MAIN CONTENT ---- */
+    #result-content {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    #result-content.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    /* ---- HEADER ---- */
+    .site-header {
+      background: var(--dark);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .wordmark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .retake-link {
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .retake-link:hover { color: var(--accent-light); border-color: var(--accent); }
+
+    /* ---- HERO ---- */
+    .hero {
+      background: var(--dark);
+      padding: 80px 40px 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(201,169,110,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .pattern-label {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(201,169,110,0.3);
+      padding: 6px 16px;
+      margin-bottom: 32px;
+    }
+    .pattern-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(42px, 8vw, 72px);
+      font-weight: 300;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .hero-tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(18px, 3vw, 24px);
+      color: var(--accent-light);
+      max-width: 640px;
+      margin: 0 auto 40px;
+      line-height: 1.5;
+    }
+    .hero-letter {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+      max-width: 480px;
+      margin: 0 auto;
+      font-style: italic;
+    }
+    .user-name-hero {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    /* ---- SECTIONS ---- */
+    .section {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 80px 40px;
+    }
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Mirror paragraphs */
+    .mirror p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(17px, 2.5vw, 21px);
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--mid);
+      margin-bottom: 28px;
+    }
+    .mirror p:last-child { margin-bottom: 0; }
+
+    /* Signs */
+    .signs-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .signs-list li {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      color: var(--mid);
+      line-height: 1.6;
+    }
+    .signs-list li:first-child { border-top: 1px solid var(--border); }
+    .sign-diamond {
+      color: var(--accent);
+      font-size: 10px;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    /* Clinical note */
+    .clinical-box {
+      background: var(--warm-white);
+      border-left: 2px solid var(--accent);
+      padding: 32px 36px;
+      margin: 0;
+    }
+    .clinical-byline {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .clinical-box p {
+      font-size: 15px;
+      color: var(--mid);
+      line-height: 1.75;
+    }
+
+    /* Sofia letter */
+    .letter-wrapper {
+      background: var(--dark);
+      padding: 60px 40px;
+    }
+    .letter-inner {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .letter-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sofia-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      color: var(--dark);
+      flex-shrink: 0;
+      /* Replace with actual photo */
+    }
+    .sofia-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .sofia-meta { display: flex; flex-direction: column; gap: 2px; }
+    .sofia-name {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 400;
+    }
+    .sofia-title {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+    .letter-date {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .letter-body p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(17px, 2.5vw, 20px);
+      font-weight: 300;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+    .letter-body p:last-child {
+      color: var(--accent-light);
+      margin-bottom: 0;
+    }
+
+    /* Diary extract */
+    .diary-section {
+      background: var(--warm-white);
+      padding: 80px 40px;
+    }
+    .diary-inner {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .diary-quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(18px, 2.8vw, 22px);
+      color: var(--mid);
+      line-height: 1.75;
+      position: relative;
+      padding-left: 28px;
+    }
+    .diary-quote::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 2px;
+      background: var(--accent);
+    }
+    .diary-attribution {
+      margin-top: 24px;
+      padding-left: 28px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Steps / Begin */
+    .steps-wrapper {
+      counter-reset: step;
+    }
+    .step-item {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 24px;
+      padding: 40px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-item:first-child { border-top: 1px solid var(--border); }
+    .step-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      color: var(--accent);
+      line-height: 1;
+      font-weight: 300;
+    }
+    .step-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--dark);
+      margin-bottom: 12px;
+    }
+    .step-body {
+      font-size: 15px;
+      color: var(--mid);
+      line-height: 1.75;
+    }
+
+    /* Testimonials */
+    .testimonials-section {
+      background: var(--dark);
+      padding: 80px 40px;
+    }
+    .testimonials-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .testimonial-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      padding: 28px;
+      border-radius: 2px;
+    }
+    .testimonial-stars {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+    .testimonial-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px;
+      font-style: italic;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .author-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(201,169,110,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .author-name {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 400;
+    }
+    .author-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* CTA */
+    .cta-section {
+      background: var(--warm-white);
+      padding: 100px 40px;
+      text-align: center;
+    }
+    .cta-inner {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .social-proof-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 10px 20px;
+      margin-bottom: 48px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .social-proof-dot { width: 6px; height: 6px; border-radius: 50%; background: #6abf69; }
+    .cta-headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 300;
+      line-height: 1.2;
+      color: var(--dark);
+      margin-bottom: 20px;
+    }
+    .cta-subhead {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 56px;
+      line-height: 1.6;
+    }
+    .program-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 48px 40px;
+      text-align: left;
+      margin-bottom: 32px;
+    }
+    .program-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+    .program-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+    .program-how {
+      margin-bottom: 32px;
+    }
+    .how-item {
+      display: flex;
+      gap: 20px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .how-item:first-child { border-top: 1px solid var(--border); }
+    .how-days {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      width: 80px;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .how-desc {
+      font-size: 14px;
+      color: var(--mid);
+      line-height: 1.6;
+    }
+    .how-desc strong {
+      display: block;
+      font-weight: 500;
+      color: var(--dark);
+      margin-bottom: 4px;
+    }
+    .includes-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .include-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      font-size: 14px;
+      color: var(--mid);
+      line-height: 1.6;
+    }
+    .include-check { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+    .outcomes-list {
+      background: var(--warm-white);
+      padding: 28px 32px;
+      margin-bottom: 40px;
+    }
+    .outcomes-title {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .outcome-item {
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--mid);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .outcome-item:last-child { margin-bottom: 0; }
+    .outcome-diamond { color: var(--accent); flex-shrink: 0; }
+    .guarantee-box {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: rgba(106,191,105,0.06);
+      border: 1px solid rgba(106,191,105,0.2);
+      padding: 24px;
+      margin-bottom: 40px;
+    }
+    .guarantee-icon { font-size: 22px; flex-shrink: 0; }
+    .guarantee-text { font-size: 14px; color: var(--mid); line-height: 1.6; }
+    .guarantee-text strong { color: var(--dark); display: block; margin-bottom: 4px; }
+    .pricing-block {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .price-current {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 52px;
+      color: var(--dark);
+      line-height: 1;
+    }
+    .price-original {
+      font-size: 18px;
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-left: 8px;
+    }
+    .price-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .cta-button {
+      display: block;
+      width: 100%;
+      background: var(--dark);
+      color: #fff;
+      border: none;
+      padding: 20px 32px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background 0.2s;
+      margin-bottom: 12px;
+    }
+    .cta-button:hover { background: var(--mid); }
+    .cta-microcopy {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .validation-footer {
+      margin-top: 56px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+    .validation-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+    .stat-item { text-align: center; }
+    .stat-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      color: var(--dark);
+      display: block;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+    .ask-sofia {
+      margin-top: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .ask-sofia a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-light); }
+
+    /* Error state */
+    .error-state {
+      text-align: center;
+      padding: 120px 40px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .error-state h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+    .error-state p { color: var(--muted); }
+
+    @media (max-width: 600px) {
+      .hero { padding: 60px 24px 80px; }
+      .section { padding: 60px 24px; }
+      .letter-wrapper { padding: 60px 24px; }
+      .diary-section { padding: 60px 24px; }
+      .testimonials-section { padding: 60px 24px; }
+      .cta-section { padding: 80px 24px; }
+      .site-header { padding: 16px 24px; }
+      .program-card { padding: 32px 24px; }
+      .validation-stats { gap: 32px; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading screen -->
+  <div id="loading-screen">
+    <div class="loading-wordmark">alma</div>
+    <div class="loading-bar"></div>
+    <div class="loading-text">Preparing your result</div>
+  </div>
+
+  <!-- Result content (hidden until loaded) -->
+  <div id="result-content">
+
+    <!-- Header -->
+    <header class="site-header">
+      <div class="wordmark">alma</div>
+      <a href="index.html" class="retake-link">Retake quiz</a>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="pattern-label">Your Pattern</div>
+      <h1 class="pattern-name" id="pattern-name">The Survivor</h1>
+      <p class="hero-tagline" id="hero-tagline"></p>
+      <p class="hero-letter" id="hero-letter"></p>
+    </section>
+
+    <!-- Mirror -->
+    <section class="section">
+      <div class="section-label">What this means for you</div>
+      <div class="mirror" id="mirror-content"></div>
+    </section>
+
+    <!-- Signs -->
+    <section class="section" style="padding-top:0;">
+      <div class="section-label">Signs this is you</div>
+      <ul class="signs-list" id="signs-list"></ul>
+    </section>
+
+    <!-- Clinical note -->
+    <section class="section" style="padding-top:0;">
+      <div class="clinical-box">
+        <div class="clinical-byline">Sofia's clinical note</div>
+        <p id="clinical-note"></p>
+      </div>
+    </section>
+
+    <!-- Sofia's letter -->
+    <section class="letter-wrapper">
+      <div class="letter-inner">
+        <div class="letter-header">
+          <div class="sofia-avatar">
+            <!-- Replace src with actual Sofia photo -->
+            S
+          </div>
+          <div class="sofia-meta">
+            <div class="sofia-name">Sofia</div>
+            <div class="sofia-title">Your Alma Guide</div>
+          </div>
+          <div class="letter-date" id="letter-date"></div>
+        </div>
+        <div class="letter-body" id="sofia-letter"></div>
+      </div>
+    </section>
+
+    <!-- Diary extract -->
+    <section class="diary-section">
+      <div class="diary-inner">
+        <div class="section-label">From Sofia's journal</div>
+        <blockquote class="diary-quote" id="diary-extract"></blockquote>
+        <div class="diary-attribution">Sofia</div>
+      </div>
+    </section>
+
+    <!-- Where to begin -->
+    <section class="section">
+      <div class="section-label">Where to begin</div>
+      <div class="steps-wrapper" id="steps-list"></div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials-section">
+      <div class="testimonials-inner">
+        <div class="section-label" style="color:var(--accent);">
+          Women who recognized themselves
+          <span style="flex:1;height:1px;background:rgba(255,255,255,0.08);display:block;"></span>
+        </div>
+        <div class="testimonials-grid" id="testimonials-grid"></div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="cta-inner">
+        <div class="social-proof-bar">
+          <div class="social-proof-dot"></div>
+          <span id="social-proof-count">14,000+ women</span> have already started their program
+        </div>
+        <h2 class="cta-headline">Your 7-Day Guided Program</h2>
+        <p class="cta-subhead">Designed specifically for <span id="cta-pattern-name"></span>. Every lesson, every audio, every exercise was built around your pattern.</p>
+
+        <div class="program-card">
+          <div class="program-title">7 Days to Clarity</div>
+          <div class="program-subtitle">Designed exclusively for your pattern</div>
+
+          <div class="program-how">
+            <div class="how-item">
+              <div class="how-days">Days 1-2</div>
+              <div class="how-desc">
+                <strong>Name what happened</strong>
+                Sofia walks you through exactly what happened and helps you stop second-guessing whether it counts.
+              </div>
+            </div>
+            <div class="how-item">
+              <div class="how-days">Days 3-4</div>
+              <div class="how-desc">
+                <strong>Understand your pattern</strong>
+                A deep dive into your specific pattern: where it comes from, why it made sense, and what it cost you.
+              </div>
+            </div>
+            <div class="how-item">
+              <div class="how-days">Days 5-6</div>
+              <div class="how-desc">
+                <strong>Break the loop</strong>
+                Practical tools to stop the rumination, the replaying, and the self-blame that keeps you stuck.
+              </div>
+            </div>
+            <div class="how-item">
+              <div class="how-days">Day 7</div>
+              <div class="how-desc">
+                <strong>Begin again</strong>
+                A clear, compassionate framework for what healing looks like, and who you are becoming.
+              </div>
+            </div>
+          </div>
+
+          <div class="includes-grid">
+            <div class="include-item">
+              <span class="include-check">&#10003;</span>
+              7 video lessons with Sofia, one per day, roughly 10 minutes each. Watch at your own pace.
+            </div>
+            <div class="include-item">
+              <span class="include-check">&#10003;</span>
+              <span>The <span id="workbook-name"></span> Workbook, a guided PDF built around your specific pattern.</span>
+            </div>
+            <div class="include-item">
+              <span class="include-check">&#10003;</span>
+              7 sleep audio tracks. Sofia's voice, 15-20 minutes each.
+            </div>
+            <div class="include-item">
+              <span class="include-check">&#10003;</span>
+              The Narcissist Decoder, a reference guide to the tactics used against you.
+            </div>
+            <div class="include-item">
+              <span class="include-check">&#10003;</span>
+              Lifetime access. Come back to any lesson, any time.
+            </div>
+          </div>
+
+          <div class="outcomes-list">
+            <div class="outcomes-title">After 7 days, women report</div>
+            <div class="outcome-item"><span class="outcome-diamond">&#9670;</span> Being able to name what happened to them, clearly, without doubt</div>
+            <div class="outcome-item"><span class="outcome-diamond">&#9670;</span> Sleeping better, with less nighttime rumination</div>
+            <div class="outcome-item"><span class="outcome-diamond">&#9670;</span> Feeling less responsible for what their partner did</div>
+            <div class="outcome-item"><span class="outcome-diamond">&#9670;</span> Starting to feel like themselves again, even just in glimpses</div>
+            <div class="outcome-item"><span class="outcome-diamond">&#9670;</span> Having language to explain it to the people they love</div>
+          </div>
+
+          <div class="guarantee-box">
+            <div class="guarantee-icon">&#128737;</div>
+            <div class="guarantee-text">
+              <strong>30-Day Full Guarantee</strong>
+              If you go through the program and do not feel it was worth every penny, email Sofia directly and you will get a full refund. No forms. No questions. No guilt.
+            </div>
+          </div>
+
+          <div class="pricing-block">
+            <span class="price-current">$67 <span class="price-original">$97</span></span>
+            <div class="price-note">One-time payment &middot; No subscription &middot; Instant access</div>
+          </div>
+
+          <a href="#" class="cta-button" id="cta-button">Yes, I want clarity &mdash; $67</a>
+          <div class="cta-microcopy">Secure checkout &middot; Instant access &middot; 30-day guarantee</div>
+        </div>
+
+        <div class="validation-footer">
+          <div class="validation-stats">
+            <div class="stat-item">
+              <span class="stat-number">14,000+</span>
+              <span class="stat-label">Women helped</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">4.9</span>
+              <span class="stat-label">Average rating</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">30</span>
+              <span class="stat-label">Day guarantee</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">97%</span>
+              <span class="stat-label">Would recommend</span>
+            </div>
+          </div>
+          <div class="ask-sofia" style="margin-top:32px;">
+            Questions? <a href="mailto:sofia@yourdomain.com">Ask Sofia directly</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- end result-content -->
+
+  <script>
+    // =============================================
+    // PATTERN DATA
+    // =============================================
+    const PATTERNS = {
+      fixer: {
+        name: "The Fixer",
+        tagline: "You believed that if you loved him enough, he would finally change.",
+        hero_letter: "NAME, you gave everything you had. And then you gave more.",
+        mirror: [
+          "You were not naive. You were not weak. You were someone who loved deeply and believed that love, if it was real enough and patient enough and consistent enough, could reach anyone. You held onto that belief for a long time. Longer than most people would have. And every time there was a moment of warmth, a glimpse of the person you first fell for, it confirmed what you already believed: that he was still in there, and that you just had not found the right way to help him stay.",
+          "You became, over time, the emotional architect of the entire relationship. You tracked his moods. You adjusted your tone before conversations. You thought carefully about timing, about wording, about how to bring something up in a way that would not set him off. You researched. You read. You tried new approaches. When those did not work, you tried to understand why they did not work, and you tried again. You were not passive. You were relentless in your effort to make things better.",
+          "What nobody told you is that this relentlessness was not a strength in this particular dynamic. It was the thing that kept you in place. Because the more you believed the relationship could be fixed, the more responsibility you took on for fixing it. And the more responsibility you took on, the less visible his behavior became, even to you. You were so focused on what you could do differently that you stopped being able to see clearly what he was doing consistently.",
+          "By the end, you had probably forgotten what it felt like to just exist in a relationship without managing it. Without anticipating. Without calculating. Without being the one who holds everything together while pretending nothing is falling apart. That is an enormous amount of invisible labor. And you carried it almost entirely alone.",
+          "The hardest part of the Fixer pattern is not leaving. It is accepting that leaving was not a failure. That no amount of patience, love, creativity, or effort was ever going to produce a different outcome. Not because you were not enough. Because the situation was not designed to get better. And no one, no matter how capable or devoted, can fix what is not trying to be fixed.",
+          "You are not here because you failed. You are here because you finally stopped trying to fix something that was never yours to repair."
+        ],
+        signs: [
+          "You researched his behavior, read books about it, and brought what you learned into the relationship hoping it would help",
+          "You made excuses for him to your friends and family, and eventually stopped telling them what was really happening",
+          "When something went wrong, your first instinct was to figure out what you had done to cause it",
+          "You believed that the version of him you saw in good moments was the real him, and the rest was something you could help him overcome",
+          "You stayed long past the point it made sense because leaving felt like giving up on someone you loved",
+          "You told yourself that if you could just be more patient, more understanding, more consistent, things would turn around",
+          "The relationship consumed most of your emotional bandwidth, even when you were not with him",
+          "You felt responsible for his moods, his outbursts, his unhappiness, and his recovery afterward"
+        ],
+        clinical_note: "The Fixer pattern emerges in women who have a high capacity for empathy and a deep belief in relational repair. In a healthy relationship, these are extraordinary qualities. In a relationship with a narcissistic or emotionally abusive partner, they become the very mechanism that sustains the dynamic. The Fixer takes on full emotional responsibility for the relationship, which allows the partner to continue their behavior without consequence. The work now is not about learning to love less. It is about redirecting that capacity for care back toward yourself, and understanding that your needs deserve the same devotion you gave to his.",
+        sofia_letter: ["Dear NAME,", "I want to start by saying something I need you to actually hear, not just read: you are one of the most capable, devoted, loving people I have ever seen come through this process. And that capacity, that extraordinary ability to hold on and keep trying, is real. It is yours. It was never the problem.", "The problem was where you aimed it.", "You gave your best self to someone who could not receive it the way you deserved. And the cruelest part of that is that you interpreted his inability to receive it as your failure to give it correctly. So you tried harder. You adjusted. You adapted. You became a version of yourself designed almost entirely around managing him, and somewhere along the way you lost track of the version of you that existed before any of this started.", "I see that woman. She is still there. She is who I am writing to right now.", "What I want you to understand is that the love you gave was not wasted, even though it feels that way. It showed you who you are. It showed you your capacity. The work now is not about becoming someone different. It is about bringing that same devotion, that same relentless care, home to yourself.", "You have spent so long trying to fix things outside of you. Everything you need right now is an invitation to come back inside. To ask yourself what you need. To learn, maybe for the first time in a long time, what it feels like to be on your own side.", "I am so proud of you for being here. This took courage.", "With love, Sofia"],
+        diary_extract: "The Fixers are the ones who stay the longest. Not because they are the most damaged. Because they are the most determined. They believe, completely and genuinely, that love is enough. Teaching them that it is not enough in every situation, without destroying that belief entirely, is the most delicate thing I do.",
+        steps: [
+          { number: 1, title: "Practice receiving instead of giving", body: "For the next week, notice every time your instinct is to help, manage, or fix something around you. That reflex is strong in you. It kept you alive in that relationship. Now practice pausing before it activates. Let someone else hold something for a moment. Let yourself be helped. Your nervous system needs to learn that it is safe to receive." },
+          { number: 2, title: "Find the story you told yourself to stay", body: "Write it down. The specific version of hope you held onto. Once he gets through this work stress. Once we move. Once he sees how serious I am. Getting that story out of your head and onto paper is the first step to seeing it clearly, without judgment, for what it was: a way your mind protected you from a reality that felt unbearable." },
+          { number: 3, title: "Reintroduce yourself to your own needs", body: "You have spent so long attuned to his needs that your own may feel unfamiliar or even uncomfortable to acknowledge. Start small. Each morning, ask yourself one question: what do I actually need today? Not what needs to be done. Not what would make things easier for everyone else. What do you need. That question is the beginning of everything." }
+        ],
+        testimonials: [
+          { initial: "M", name: "Michelle R.", age: 44, location: "Texas", text: "I spent nine years believing I just had not found the right way to reach him yet. Reading my pattern was the first time someone explained why I stayed in a way that did not make me feel stupid. I cried for an hour. Then I felt something I had not felt in years. Relief." },
+          { initial: "C", name: "Catherine B.", age: 38, location: "Ohio", text: "The part about becoming the emotional architect of the relationship destroyed me in the best way. That was exactly what I was doing, every single day, and I had never seen it named. It helped me stop blaming myself for not doing enough and start seeing how much I had already done." },
+          { initial: "R", name: "Rachel D.", age: 51, location: "Florida", text: "I am a therapist. I knew the theory. I still could not see it clearly in my own life until I went through this. The Fixer description was so precise it was almost uncomfortable to read. That precision is what makes it work." },
+          { initial: "L", name: "Laura S.", age: 33, location: "North Carolina", text: "I kept thinking, if I just read one more book, learned one more communication technique, tried one more approach. This helped me see that my effort was never the variable. That was genuinely life-changing information." },
+          { initial: "P", name: "Patricia M.", age: 57, location: "Arizona", text: "I told my daughters about this program. Both of them. Not because they are in bad relationships, but because I want them to recognize these patterns before they spend twenty years in one. This is the resource I wish I had at thirty." },
+          { initial: "J", name: "Jessica T.", age: 29, location: "Georgia", text: "I thought I was too young to be in something like this. The Fixer description showed me that this has nothing to do with age and everything to do with how much you love and how hard you are willing to try. I saw myself completely." },
+          { initial: "A", name: "Amanda F.", age: 42, location: "Washington", text: "Six months out and I still catch myself anticipating other people's moods before I even walk into a room. Knowing that this is a trained response, not a personality flaw, has been the most important thing I have learned in my recovery." },
+          { initial: "D", name: "Danielle K.", age: 36, location: "New York", text: "The letter from Sofia made me sob. I have not let myself be that seen in years. I did not realize how much I needed someone to say: I see what you did, I see how hard you tried, and none of this was your fault." }
+        ]
+      },
+
+      doubter: {
+        name: "The Doubter",
+        tagline: "You started to believe that maybe the problem was you.",
+        hero_letter: "NAME, your memory was not the problem. Your perception was not broken. You were being lied to.",
+        mirror: [
+          "There is a particular kind of loneliness that comes from doubting your own mind. It is not like other forms of loneliness, where you miss someone or wish you had company. It is the loneliness of being stranded inside your own experience with no way to trust it. You would remember something clearly, something you heard or saw or felt, and then the conversation that followed would somehow leave you wondering if you had imagined it. And eventually, you stopped trusting yourself.",
+          "It probably did not happen all at once. It rarely does. It started with small things. A disagreement about what was said in a conversation. A tone you noticed that he denied using. An incident you remembered one way and he remembered a completely different way, so confidently and consistently that you started to wonder if your version was wrong. Over time, those small moments accumulated into something much larger: a fundamental uncertainty about your own perception of reality.",
+          "This is called gaslighting. And knowing that word, now that you have probably heard it, does not make the experience of it feel any less disorienting. Because gaslighting does not feel like being manipulated from the outside. It feels like your own mind failing you from the inside. That is what makes it so effective and so damaging. You were not fighting him. You were fighting yourself.",
+          "You likely became quieter over time. Not because you had less to say, but because saying things had become risky. Every time you expressed something, you opened yourself up to having it reframed, denied, or turned against you. So you edited yourself. You measured your words carefully. You stopped sharing things that mattered to you because the cost of sharing was too high. And in that silence, you started to disappear.",
+          "What you need to know right now is this: your memory is not faulty. Your instincts were not wrong. Your reactions were not crazy or oversensitive or disproportionate. They were accurate responses to a situation that was genuinely difficult. The problem was not your perception. The problem was a sustained, deliberate campaign to make you doubt your perception. And you survived it.",
+          "The work ahead is not about fixing something that is broken in you. It is about rebuilding trust with a self that was systematically undermined. You are not starting from zero. You are returning to someone who was always there, who always knew, who was just told for too long that she did not."
+        ],
+        signs: [
+          "You started keeping notes or screenshots because you could not trust your own memory anymore",
+          "After arguments, you felt more confused than before they started, never clear or resolved",
+          "You apologized constantly, often without knowing exactly what you were apologizing for",
+          "You asked close friends 'am I being crazy?' more times than you can count",
+          "You stopped bringing things up because the conversation always ended with you feeling worse",
+          "You wondered if you were 'too sensitive' so often that it became a background noise in your mind",
+          "You felt like you were living in two realities: what you experienced and what you were told you experienced",
+          "Even now, you sometimes catch yourself questioning whether your account of things is accurate"
+        ],
+        clinical_note: "The Doubter pattern reflects the internalized effects of sustained gaslighting. Over time, repeated reality-distortion by a partner rewires the brain's confidence in its own perceptions, a process that researchers have linked to symptoms closely resembling trauma and dissociation. The Doubter often presents as someone who is highly self-critical, overly apologetic, and deeply uncertain about her own judgment, not because these are personality traits, but because they are learned survival adaptations. Recovery for the Doubter centers on reality reconstruction: slowly, systematically rebuilding trust in one's own memory, instincts, and emotional responses.",
+        sofia_letter: ["Dear NAME,", "The first thing I want to say to you is something simple but I need you to let it land: you were not crazy. You were not too sensitive. You were not remembering things wrong. You were being systematically taught to distrust yourself, and you survived that. That is the truth. Everything else we do together builds on that foundation.", "I know how hard it is to believe that right now. Because the doubt does not disappear the moment you leave. It follows you. You still second-guess yourself. You still wonder sometimes if you are remembering things accurately, if your version of events is reliable, if your feelings make sense. That is not a sign that something is wrong with you. It is the residue of what you lived through. It makes complete sense. And it will soften.", "What I want you to understand is that the uncertainty you feel about your own mind is not evidence that your mind is unreliable. It is evidence of what was done to it. There is a profound difference between those two things. One is a verdict on you. The other is a description of what you survived.", "You have better instincts than you currently believe you do. They are in there. They were telling you the truth the whole time. The process we go through together is not about installing new instincts or teaching you a new way to perceive reality. It is about clearing away what was built on top of the ones you already have, so you can hear yourself again.", "You deserve to trust yourself. That is where we are going.", "With love, Sofia"],
+        diary_extract: "The Doubters break my heart in a specific way. Because they are often the most perceptive women in the room. They notice everything. They feel everything. And they were taught, methodically, to treat their own perception as a liability. Getting them back to themselves is not a long journey. But it requires patience. The distrust runs deep.",
+        steps: [
+          { number: 1, title: "Start a reality anchor journal", body: "Each day, write down three things you observed, felt, or experienced. Not interpretations. Just facts. He raised his voice. I felt scared. I stepped back. Getting in the habit of recording your experience as it happens, in simple and concrete language, begins to rebuild your relationship with your own perception. Over time, you will start to trust what you write. And then you will start to trust what you feel before you write it." },
+          { number: 2, title: "Find one person who witnessed something", body: "You do not need to relitigate everything. But finding one person, a friend, a family member, anyone who saw something and can reflect it back to you, can be profoundly stabilizing. Not to validate your anger, but to confirm your reality. Yes, that happened. I saw it too. Those words carry more healing than they might seem to." },
+          { number: 3, title: "Practice saying 'I know what I experienced'", body: "Not as a statement to anyone else. As a private practice. When the doubt creeps in, when you start to rewrite your own memory, pause. Say it quietly, or in your head: I know what I experienced. You do not have to be certain about every detail. You just have to stop letting the doubt have the final word. This is a practice. It gets easier." }
+        ],
+        testimonials: [
+          { initial: "S", name: "Sarah K.", age: 40, location: "Illinois", text: "I genuinely thought I was losing my mind. I had spreadsheets. I kept records. I would show him proof of what was said and he would tell me I was misremembering the context. This program was the first time someone explained to me that I was not broken. I was being broken. There is a difference." },
+          { initial: "N", name: "Nicole W.", age: 35, location: "California", text: "The hardest part of leaving was that I still was not sure I had the story right. The Doubter description validated something I could not validate for myself. I read it three times. Each time I felt a little more solid." },
+          { initial: "B", name: "Bethany L.", age: 47, location: "Minnesota", text: "I used to apologize before I even finished a sentence. I apologized for my feelings, for my tone, for existing in a way that inconvenienced him. Two months into this program, I realized I had not apologized for something that was not my fault in weeks. That is not small." },
+          { initial: "T", name: "Theresa A.", age: 52, location: "Pennsylvania", text: "My therapist recommended this alongside our sessions. She said she had never seen something so accurately describe the internal experience of gaslighting. I agree. The mirror section felt like reading my own diary." },
+          { initial: "H", name: "Hannah C.", age: 31, location: "Colorado", text: "The most healing thing was realizing that my hyperawareness, always reading the room, always anticipating, was not a personality flaw. It was something I developed to survive. Understanding that changed how I relate to myself completely." },
+          { initial: "V", name: "Vanessa P.", age: 43, location: "Nevada", text: "I left two years ago and I was still second-guessing myself every single day. This program finally gave me a framework to understand why. The healing is not instant but it is real. I am finally starting to trust myself again." },
+          { initial: "G", name: "Grace M.", age: 28, location: "Virginia", text: "I am young and I am grateful I found this early. The Doubter pattern described my entire relationship in a way that my own words never could. I shared it with my best friend so she would understand what I had been trying to explain for two years." },
+          { initial: "E", name: "Ellen R.", age: 60, location: "Michigan", text: "At sixty, I thought I was too old to start over. This program reminded me that starting over is not the goal. The goal is coming home to yourself. I am doing that. Slowly, imperfectly, but genuinely. That is enough." }
+        ]
+      },
+
+      walker: {
+        name: "The Walker",
+        tagline: "You left. But you still cannot fully explain what happened.",
+        hero_letter: "NAME, you did the hardest thing. Now we are going to help you understand what you walked away from.",
+        mirror: [
+          "You made it out. That took something real. But leaving, as you have probably discovered, does not automatically bring the clarity you hoped for. If anything, the weeks and months after leaving have sometimes felt more confusing than being inside it. You replay things. You search for the pattern. You go over moments trying to understand how it got to be what it was. You are not stuck because you are weak. You are stuck because you left without a map.",
+          "The Walker pattern is marked by a very specific kind of mental loop. You understand that something was wrong. You know the relationship hurt you. You know it was not healthy. But you cannot quite organize it into a coherent story that fully makes sense. There are gaps. Contradictions. Moments that do not fit neatly into the narrative of he was bad and I left. Because it was not that simple. There were good times. There was real love, or something that felt like it. And making sense of the bad in the context of the good is genuinely hard, and nobody teaches you how to do it.",
+          "You may also be dealing with something that feels embarrassing to admit: you still think about him. Maybe constantly. Not always with longing. Sometimes with anger, or confusion, or a need to understand that you cannot quite shake. That is not a sign that you made the wrong choice or that you secretly want to go back. It is a sign that your mind is still trying to complete a story that does not have a clean ending.",
+          "The Walker often describes a strange duality after leaving. On the outside, she is fine. She has moved on in the practical sense. She may even be doing well. But inside, she is still in the relationship, still turning it over, still searching. And because she looks okay on the outside, the people around her may not understand why she is still talking about it, still affected by it, still not fully free.",
+          "What you need is not more time. What you need is understanding. The specific, clear, honest understanding of what actually happened in that relationship, named with precision, so that your mind can finally stop searching and start healing. The loop runs because your brain is doing what brains do when they encounter something that does not make sense: it keeps returning to it, trying to resolve it. Give it the resolution it needs.",
+          "You left. That was brave and hard and right. Now it is time to understand what you left. Not to relitigate it. Not to go back. But to finally close the chapter in a way that lets you walk forward without carrying it."
+        ],
+        signs: [
+          "You left the relationship but you find yourself replaying conversations and moments constantly, still trying to make sense of them",
+          "You struggle to explain to others exactly what was wrong, even though you know something was deeply off",
+          "You sometimes still check his social media, not because you want him back, but because you are still looking for something",
+          "You feel fine in daily life but certain triggers bring everything flooding back",
+          "You have started to understand concepts like narcissism or emotional abuse but you are not quite sure they fully apply to your situation",
+          "You wonder sometimes if you overreacted, if it was as bad as it felt, if you were fair to him when you left",
+          "People in your life think you should be over it by now, and that disconnect makes you feel more alone",
+          "You want clarity more than anything, not revenge, not even healing yet, just to understand what actually happened"
+        ],
+        clinical_note: "The Walker pattern reflects a post-relationship state characterized by unresolved narrative closure. Research on trauma and memory shows that the brain requires coherent storytelling to process difficult experiences. When a relationship involves manipulation, intermittent reinforcement, or emotional abuse, the narrative becomes deliberately incoherent, making it neurologically difficult to process and move past. The Walker is not failing to heal. She is attempting to heal without the necessary framework. Providing that framework, naming what happened with precision and without judgment, is the most direct intervention available and often produces rapid relief.",
+        sofia_letter: ["Dear NAME,", "You did it. You left. And I want to acknowledge that before anything else, because it matters and because I know it did not feel simple.", "But I also know where you are right now. I know the loop. The replaying. The searching. The way you can be completely fine and then something small will pull you right back into the middle of it, and suddenly you are there again, turning it over, trying to find the piece that makes the whole thing make sense.", "Here is what I want to tell you: the reason it will not resolve is not because something is wrong with you. It is because what happened to you was designed to be confusing. The dynamics you lived through, the inconsistency, the warmth followed by distance, the moments of real connection followed by withdrawal or cruelty, create a very specific kind of psychological knot. And you cannot untie a knot just by pulling harder on the ends. You have to understand how it was tied.", "That is what we are going to do together. Not to drag you back into it. Not to make you relive things you would rather leave behind. But to give you the understanding your mind has been searching for. Once you have the framework, once you can name what happened clearly and see the pattern for what it was, the loop stops. Not all at once. But it stops.", "You left without that map. I am going to give it to you now.", "With love, Sofia"],
+        diary_extract: "The Walkers come in looking for answers. And I understand the impulse to give them those answers immediately. But what they really need first is to feel less alone in the not-knowing. Once they feel that, the answers land differently. They do not just understand. They believe.",
+        steps: [
+          { number: 1, title: "Write the timeline, not the story", body: "Not what it meant. Not how you felt about it. Just what happened, in order. Month by month if you can. When things changed. When things got better. When they got worse again. Getting the factual sequence out of your memory and onto paper does something important: it externalizes the loop. You stop having to hold it all in your head. And when it is on paper, patterns become visible that are invisible when everything is swirling." },
+          { number: 2, title: "Name it, even tentatively", body: "You do not need to be certain. You do not need to be sure it qualifies. But giving language to what happened, even in the privacy of your own journal, breaks something open. Write: I think what happened was, and finish the sentence. Not for anyone else. Just to hear yourself say it. The mind cannot process what it cannot name." },
+          { number: 3, title: "Create a contact boundary, just for now", body: "If you are still checking his profiles, still in occasional contact, still orbiting in any way, this step is specifically for you. Not forever. Just for the next 30 days, create distance. The loop runs partly because you are still feeding it information. Every time you check, you give your brain new material to process, and it starts the cycle again. Distance is not punishment. It is the space your nervous system needs to begin settling." }
+        ],
+        testimonials: [
+          { initial: "F", name: "Frances O.", age: 37, location: "Tennessee", text: "I left eight months ago and everyone around me thought I should be fine. I was not fine. I was obsessively replaying everything, trying to understand. The Walker description was the first time I felt like someone understood why I was still stuck. I was not stuck because I was weak. I was stuck because I did not have the framework. This gave me the framework." },
+          { initial: "I", name: "Isabel N.", age: 34, location: "New Mexico", text: "The hardest part was not being able to explain it to people who asked. I kept saying it is hard to describe. This gave me the words. I finally feel like I can tell the story in a way that makes sense, even to myself." },
+          { initial: "K", name: "Kristin B.", age: 45, location: "Oregon", text: "I was checking his Instagram every day. I told myself it was just to see if he was okay. This program helped me understand that I was still searching for the answer I never got when I left. The answer was not on his page. It was in understanding the pattern. I stopped checking." },
+          { initial: "W", name: "Whitney H.", age: 30, location: "Missouri", text: "My friends kept telling me to just move on. But I could not move on because I did not understand what I was moving on from. This finally gave me what I was looking for. Clarity. Real clarity." },
+          { initial: "O", name: "Olivia C.", age: 41, location: "South Carolina", text: "I questioned whether what I experienced counted. It did not involve physical violence. It was subtle and confusing and I was not sure it was bad enough to justify how badly I felt. The Walker section helped me understand that the confusion itself is the evidence. I finally stopped needing proof." },
+          { initial: "U", name: "Uma S.", age: 33, location: "Massachusetts", text: "I am a researcher by training. I needed to understand before I could heal. This program met me there. It did not ask me to feel my way through recovery before I had the intellectual framework. It gave me the framework first. That was exactly what I needed." },
+          { initial: "Q", name: "Quinn R.", age: 27, location: "Wisconsin", text: "I have been in therapy for a year and this program gave me more clarity in the first week than I had gotten in months of sessions. Not because my therapist was bad, but because this is specifically designed for this experience. The specificity is what makes it work." },
+          { initial: "Y", name: "Yvonne T.", age: 55, location: "Louisiana", text: "I left a thirty year marriage. I thought I would never understand what it actually was. The Walker section described the second half of my marriage with a precision that took my breath away. I am 55 and I am finally beginning to understand my own story. It is not too late." }
+        ]
+      },
+
+      survivor: {
+        name: "The Survivor",
+        tagline: "You left. You understood. But you are still carrying the weight.",
+        hero_letter: "NAME, you knew something was wrong long before you left. Leaving was the hardest part.",
+        mirror: [
+          "You felt it. The tension, the eggshells, the slow disappearing of the life you had before them. You knew, but leaving felt impossible. Maybe you loved them. Maybe you feared what came after. Maybe you had been alone in the relationship for so long that being alone without it felt even emptier. Maybe you simply did not feel strong enough. You left anyway. Or you are leaving now. That took more strength than most people will ever understand.",
+          "The Survivor often describes their relationship as one long, sustained holding of breath. You became hypervigilant, reading their moods before they walked in the door, adjusting your energy to match theirs, making yourself smaller and quieter to take up less space. This is not a personality trait. It is a trauma response. Your nervous system was doing exactly what nervous systems do under sustained threat: it learned to anticipate danger so it could protect you.",
+          "What makes the Survivor pattern particularly heavy is the grief. Because even in a relationship that hurt you, there were real moments, real warmth, real hope, a real version of who you thought they were. Leaving means grieving not just the relationship, but the future you believed in. That grief is completely legitimate. It does not mean you made the wrong choice.",
+          "Many Survivors describe feeling two things simultaneously: relief and devastation. Clarity and confusion. Freedom and fear. These are not contradictions. They are the entirely predictable emotional landscape of leaving a relationship defined by intermittent reinforcement, where the good moments were just good enough to keep you hoping, and just rare enough to keep you chasing.",
+          "The work of the Survivor is decompression. Your nervous system has been on high alert for a long time. It does not know yet that the threat is gone. Part of healing is learning to feel safe again, not just intellectually, but in your body. In the quiet moments. In the mornings when no one is monitoring your mood or waiting for you to do something wrong.",
+          "You have already done the hardest part. What comes next is not more strength. It is permission. Permission to rest. Permission to grieve. Permission to take as long as you need to find your way back to yourself."
+        ],
+        signs: [
+          "You tracked their mood from the moment you heard their key in the door, bracing yourself every time",
+          "Your world slowly contracted until they were your primary relationship with reality",
+          "You felt a wave of relief when they left the house, and dread when they came back",
+          "You told yourself it is not that bad more times than you can count, often convincing yourself it was true",
+          "Leaving felt like jumping off a cliff into darkness, even when staying was quietly destroying you",
+          "You still miss them sometimes, and the missing confuses and shames you",
+          "Even now, part of you is waiting for something, you are just not sure what",
+          "You have language for what happened, you have done some work, but something still feels unresolved in your body"
+        ],
+        clinical_note: "The Survivor pattern is marked by extended exposure to emotional control and intermittent reinforcement, a cycle of tension, conflict, and brief warmth that creates some of the most powerful psychological bonds known to researchers. Unlike other patterns, the Survivor often has intellectual understanding of what happened but continues to experience somatic and emotional residue that understanding alone has not resolved. The work now is decompression: releasing the hypervigilance, processing the grief, and moving healing from the mind into the body and into daily lived experience.",
+        sofia_letter: ["Dear NAME,", "I have something I need you to hear before anything else: there is no timeline for leaving that makes you weak. Not two years. Not five. Not twelve. The length of time you stayed is not a measure of your strength, or your intelligence, or your worth. It is a measure of how powerful these bonds can be, and how much you loved someone who did not love you the way you deserved.", "I know how hard it was. I know the mornings you woke up and told yourself today I am leaving, and then something happened, something shifted, and you stayed another day. Another month. Another year. I know you have probably judged yourself for that, quietly, in the dark. I want you to stop.", "You were not staying out of weakness. You were staying because you were bonded, chemically, emotionally, psychologically, to someone who was very good at keeping you just close enough to hope. That is not a failure of your character. It is the precise mechanism of how emotional abuse works. It is not your fault it worked on you. It works on everyone.", "What I want you to know is this: the moment you decided to leave, whenever that was, however many times it took, that was one of the bravest things you have ever done. You walked away from the only stability you knew, even when that stability was hurting you. You chose yourself. Maybe for the first time in a long time.", "This is the beginning. Not the end of something. The beginning. And I am here for every step of it.", "So proud of you. Sofia"],
+        diary_extract: "You survived something that most people genuinely cannot understand unless they have lived it. The eggshells. The low-grade constant fear. The love that somehow coexisted with the pain and made leaving harder, not easier. The fact that you stayed does not make you weak. It makes you someone who loved fully, in a situation designed to make leaving feel impossible. You are not to blame for how hard it was. You are only to be celebrated for the fact that you did it.",
+        steps: [
+          { number: 1, title: "Let your nervous system rest", body: "You have been on high alert for a long time. Your body does not yet know the threat is gone. Start noticing moments when you are physically safe, right now, in this moment, and practice staying there for a breath or two. Not meditating. Not doing anything. Just noticing: I am safe right now. Your nervous system learns through repetition. Give it a new experience to repeat." },
+          { number: 2, title: "Allow the grief without explaining it", body: "Grieving a relationship that hurt you is not weakness and it is not confusion. It is necessary. You are allowed to miss something that was bad for you. You are allowed to mourn the future you believed in. You are allowed to feel the loss without it meaning you made the wrong choice. The grief is real. Let it move through you rather than holding it down or explaining it away." },
+          { number: 3, title: "Find one person who knows the truth", body: "Not to convince them, not to relitigate the relationship. Just to say out loud: this is what happened to me. Being witnessed is a core part of healing that no amount of solo processing can replace. You do not need someone who fully understands. You need someone who fully believes you. If that person does not exist in your life yet, that is part of what we build in this program." }
+        ],
+        testimonials: [
+          { initial: "J", name: "Jennifer A.", age: 53, location: "Georgia", text: "I used to feel so ashamed that I stayed for eight years. This finally helped me understand why I stayed. It was not stupidity. It was a trauma response. I sobbed the whole time I read this." },
+          { initial: "T", name: "Tamara L.", age: 39, location: "Illinois", text: "The part about tracking his mood before he walked in the door. I did that every single day for six years. Seeing it described so precisely made me realize how far outside normal I had drifted." },
+          { initial: "A", name: "Adrienne C.", age: 45, location: "Colorado", text: "I left four months ago and I still miss him. I was starting to think that meant I should go back. This helped me understand that the missing is part of the pattern, not a sign to return." },
+          { initial: "K", name: "Kimberly R.", age: 48, location: "Tennessee", text: "I always thought strong women left immediately. This made me understand that staying is not weakness. It is what trauma bonds do. I finally stopped hating myself for not leaving sooner." },
+          { initial: "X", name: "Alexandra M.", age: 44, location: "New Jersey", text: "I had read every book. I thought I understood what happened to me. But understanding it intellectually and actually healing from it are completely different things. This program addresses both. I did not expect to feel so much in week one." },
+          { initial: "Z", name: "Zoe B.", age: 32, location: "Utah", text: "The hypervigilance section broke something open in me. I still flinch when I hear a door slam. I still read rooms before I enter them. I did not realize this was still happening until it was described so clearly. That awareness was the beginning of something shifting." },
+          { initial: "W", name: "Wendy S.", age: 50, location: "Kentucky", text: "I am a nurse. I am used to holding other people together. This was the first time in years that someone held space for me. The letter from Sofia made me feel seen in a way I had forgotten was possible." },
+          { initial: "R", name: "Rebecca J.", age: 36, location: "Indiana", text: "I went through the program twice. The first time I was still in survival mode and absorbed maybe half of it. The second time, six months later, I got something completely different from every single lesson. The lifetime access is not a gimmick. It is genuinely necessary." }
+        ]
+      }
+    };
+
+    // =============================================
+    // SCORING LOGIC
+    // =============================================
+    function calculatePattern(answers) {
+      const scores = { A: 0, B: 0, C: 0 };
+      const QUESTIONS = [
+        { id: 1, options: [{ A: 4, B: 0, C: 0 }, { A: 3, B: 1, C: 0 }, { A: 1, B: 2, C: 1 }, { A: 2, B: 1, C: 1 }] },
+        { id: 2, options: [{ A: 0, B: 4, C: 0 }, { A: 1, B: 3, C: 0 }, { A: 1, B: 2, C: 1 }, { A: 0, B: 1, C: 2 }] },
+        { id: 3, options: [{ A: 4, B: 0, C: 0 }, { A: 2, B: 1, C: 1 }, { A: 3, B: 0, C: 1 }, { A: 2, B: 0, C: 2 }] },
+        { id: 4, options: [{ A: 1, B: 1, C: 0 }, { A: 0, B: 0, C: 1 }, { A: 0, B: 0, C: 3 }, { A: 0, B: 0, C: 4 }] },
+        { id: 5, options: [{ A: 0, B: 4, C: 0 }, { A: 0, B: 3, C: 1 }, { A: 1, B: 3, C: 0 }, { A: 1, B: 2, C: 2 }] },
+        { id: 6, options: [{ A: 4, B: 0, C: 0 }, { A: 3, B: 0, C: 1 }, { A: 2, B: 0, C: 2 }, { A: 0, B: 0, C: 3 }] },
+        { id: 7, options: [{ A: 0, B: 0, C: 2 }, { A: 0, B: 1, C: 3 }, { A: 1, B: 1, C: 2 }, { A: 0, B: 0, C: 4 }] },
+        { id: 8, options: [{ A: 0, B: 4, C: 0 }, { A: 0, B: 3, C: 1 }, { A: 1, B: 4, C: 0 }, { A: 0, B: 2, C: 1 }] },
+        { id: 9, options: [{ A: 0, B: 0, C: 2 }, { A: 2, B: 0, C: 2 }, { A: 1, B: 0, C: 3 }, { A: 1, B: 1, C: 4 }] }
+      ];
+      for (const answer of answers) {
+        const question = QUESTIONS.find(q => q.id === answer.questionId);
+        if (!question) continue;
+        const option = question.options[answer.optionIndex];
+        if (!option) continue;
+        scores.A += option.A || 0;
+        scores.B += option.B || 0;
+        scores.C += option.C || 0;
+      }
+      const total = scores.A + scores.B + scores.C;
+      if (total === 0) return "survivor";
+      const aR = scores.A / total, bR = scores.B / total, cR = scores.C / total;
+      if (aR >= 0.45 && cR < 0.35) return "fixer";
+      if (bR >= 0.45 && aR >= 0.15) return "doubter";
+      if (cR >= 0.45 && aR < 0.25) return "walker";
+      return "survivor";
+    }
+
+    // =============================================
+    // RENDER
+    // =============================================
+    function render(data) {
+      const { name, pattern: patternKey } = data;
+      const p = PATTERNS[patternKey] || PATTERNS.survivor;
+
+      // Hero
+      document.getElementById('pattern-name').textContent = p.name;
+      document.getElementById('hero-tagline').textContent = p.tagline;
+      document.getElementById('hero-letter').innerHTML = p.hero_letter.replace('NAME', `<span class="user-name-hero">${name},</span>`);
+
+      // Mirror
+      const mirrorEl = document.getElementById('mirror-content');
+      mirrorEl.innerHTML = p.mirror.map(para => `<p>${para.replace(/NAME/g, name)}</p>`).join('');
+
+      // Signs
+      const signsEl = document.getElementById('signs-list');
+      signsEl.innerHTML = p.signs.map(s => `<li><span class="sign-diamond">&#9670;</span><span>${s}</span></li>`).join('');
+
+      // Clinical note
+      document.getElementById('clinical-note').textContent = p.clinical_note;
+
+      // Sofia letter
+      const letterEl = document.getElementById('sofia-letter');
+      letterEl.innerHTML = p.sofia_letter.map(para => `<p>${para.replace(/NAME/g, name)}</p>`).join('');
+
+      // Date
+      document.getElementById('letter-date').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+      // Diary
+      document.getElementById('diary-extract').textContent = p.diary_extract;
+
+      // Steps
+      const stepsEl = document.getElementById('steps-list');
+      stepsEl.innerHTML = p.steps.map(s => `
+        <div class="step-item">
+          <div class="step-number">${s.number}</div>
+          <div>
+            <div class="step-title">${s.title}</div>
+            <div class="step-body">${s.body}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Testimonials
+      const testimonialsEl = document.getElementById('testimonials-grid');
+      testimonialsEl.innerHTML = p.testimonials.map(t => `
+        <div class="testimonial-card">
+          <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <div class="testimonial-text">"${t.text}"</div>
+          <div class="testimonial-author">
+            <div class="author-avatar">${t.initial}</div>
+            <div>
+              <div class="author-name">${t.name}</div>
+              <div class="author-meta">${t.age}, ${t.location}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // CTA
+      document.getElementById('cta-pattern-name').textContent = p.name + 's';
+      document.getElementById('workbook-name').textContent = p.name;
+    }
+
+    // =============================================
+    // LOAD DATA FROM SUPABASE
+    // =============================================
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+    async function loadResult() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+
+      if (!id) {
+        showError('No result ID found in the URL.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/quiz_results?id=eq.${id}&select=name,pattern`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+        const rows = await res.json();
+
+        if (!rows || rows.length === 0) {
+          showError('Result not found. The link may have expired or be incorrect.');
+          return;
+        }
+
+        render(rows[0]);
+        hideLoading();
+
+      } catch (err) {
+        console.error(err);
+        showError('Something went wrong loading your result. Please try again.');
+      }
+    }
+
+    function hideLoading() {
+      document.getElementById('loading-screen').style.display = 'none';
+      const content = document.getElementById('result-content');
+      content.style.display = 'block';
+      requestAnimationFrame(() => content.classList.add('visible'));
+    }
+
+    function showError(msg) {
+      document.getElementById('loading-screen').style.display = 'none';
+      const content = document.getElementById('result-content');
+      content.style.display = 'block';
+      content.innerHTML = `
+        <header class="site-header"><div class="wordmark">alma</div></header>
+        <div class="error-state">
+          <h2>Something went wrong</h2>
+          <p>${msg}</p>
+        </div>
+      `;
+      requestAnimationFrame(() => content.classList.add('visible'));
+    }
+
+    loadResult();
+  </script>
+
+</body>
+</html>
