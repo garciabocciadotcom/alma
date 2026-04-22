@@ -74,7 +74,7 @@ module.exports = async function handler(req, res) {
     const resultUrl = `${SITE_URL}/results.html?id=${data.id}`;
 
     const { error: emailError } = await resend.emails.send({
-      from: 'Sofia at Alma <onboarding@resend.dev>',
+      from: 'Sofia from Alma <alma@krr.co>',
       to: email,
       subject: `${name}, your Alma result is ready`,
       html: `
